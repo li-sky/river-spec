@@ -90,6 +90,22 @@ git commit -m "spec: complete table action labels"
 
 状态为 `draft`、`in_progress`、`done`、`cancelled`。计划取消时手工填写 cancelled 并在审阅结论说明原因；取消不意味着验收通过。done 与发布状态相互独立，未发布的完工计划保持 `delivery.status=not_released`。变更发布状态必须来自真实发布结果。
 
+`run` 和 `finish` 要求计划先经 `start` 进入 in_progress；done 或 cancelled 不会自动重开。需要继续改进时新建计划，保留已完成计划的验证记录。
+
+## 在 Warp 或 Codex 中使用
+
+项目根目录的 AGENTS.md 提供执行约定。可以把下面的请求交给代理，并把生成的计划作为后续对话上下文；Warp 的原生计划可以辅助编辑和审阅，仓库中的计划文件保存本项目要求的验收与证据。
+
+```text
+读取开发约定和对应规格，为本次需求建立一份计划。
+写清预期行为、验收场景和任务所有权，校验并开工，然后提交计划。
+按任务实现，审阅实际差异，确认验收场景，执行相关检查。
+同步长期规格，以当前代码提交和验证证据完成计划；单独记录发布状态。
+已有授权范围内继续推进，存在影响目标的歧义时及时说明。
+```
+
+目前通过本地 CLI 和代理执行约定落实门槛；尚未设置 GitHub 服务器侧的强制合并检查。
+
 ## CLI 与最低检查
 
 工具入口是 `python3 scripts/sdd.py`，只用 Python 标准库；Go、npm 等仍是产品检查所需的外部环境。`new <slug> --title <标题> --spec <key> [--spec <key> ...] --risk <等级>` 创建计划。`check/start/run/finish <plan路径>` 默认使用同级 `river-code`，也可添加 `--code-dir /绝对路径/river-code`。`run` 可用重复 `--check <名称>` 选择检查。
@@ -115,6 +131,8 @@ risk 描述本次变化实际风险，不为少运行命令把行为变化标成
 ## 验证证据与完成门禁
 
 每次 run 保存所选 profile 的命令参数、工作目录、退出码、UTC 时间，以及 `codeCommit`、`codeClean`、工具 `toolSha256`、对应规格的 `specSha256` 和 `planFingerprint`。验证记录顶层 `codeCommit` 指向被检查的代码提交；不要手工伪造 pass、hash 或命令结果。
+
+另外记录工具测试文件的 supportSha256 和映射的 specMapSha256。finish 核对实际命令序列与固定 profile 一致；sdd 检查需要实际存在且执行了测试，不能用发现零个测试的成功退出代替验证。
 
 finish 同时要求：AC/T 全部为 `[x]`、审阅结论明确、每个必需检查的**最新**记录通过；记录对应当前代码 HEAD，代码工作区 clean；工具 hash、计划关联规格 hash、计划需求 fingerprint 均与当前内容一致。后一次失败不能被更早的成功覆盖；缺检查、过期证据或尚未提交的代码都需修正并重新检查。
 
