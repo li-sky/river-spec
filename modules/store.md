@@ -40,6 +40,8 @@
 
 房主置顶消息通过完整房间快照中的 `pinnedMessage: Message|null` 保存，独立于最近 100 条 `Messages`；裁剪不影响置顶。房间服务负责 ID 查找、权限、保存后广播及失败回滚；存储层仍只保存 JSON。无需新增 SQL 字段或采用独立消息表，旧快照缺置顶字段时由房间服务恢复为 null。实现与验证见 [置顶计划](../plans/host-pin-message.md)。
 
+牌桌获胜统计随同一个房间快照保存：`winCounts` 按身份保存累计获胜手数，`lastCountedHand` 记录已统计的最近手数，成员的公开 `wins` 为当前统计值。房间服务负责结算去重、保存失败回滚、旧快照初始化及离开再进入后的恢复；仓储不判定赢家，也无需新增 SQL 表或列。没有完整历史时不会回填旧牌局。具体行为及实际验证见 [获胜计数计划](../plans/table-win-counter.md)。
+
 `SaveRoom` 要求输入是合法 JSON，然后将 ID、名称、房主 ID 和完整快照一次写入；PostgreSQL 更新 `updated_at`，内存复制输入字节避免外部修改。`LoadRooms` 读取所有房间，PostgreSQL 按 `updated_at` 排序；内存映射遍历顺序不保证稳定。JSON 校验只保证语法，不验证必须为对象、牌局规则、资金守恒或 schema。
 
 独立消息接口 `SaveMessage/LoadMessages` 已实现：保存合法 JSON，裁剪至每房间最近 100 条，读取按时间顺序对应的自增 ID 顺序返回。PostgreSQL 的插入和裁剪处于同一事务；内存锁内操作并复制字节。
@@ -123,3 +125,7 @@
 ## 文档与代码入口
 
 [项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。当前源码基线为提交 `4975694`；后续实现变化需同步此规格和验收证据。
+
+### 本桌获胜次数验收
+
+2026-10-01 服务端单元测试及真实浏览器计数／重连／退出再加入、320/390/600px 6/8/9人摊牌布局通过；隔离 PostgreSQL 17 数据库及真实房间服务进程重启验证精确次数和已完成手牌去重。详情、旧快照限制及实际验收范围见 [获胜次数计划](../plans/table-win-counter.md)。当前代码基线：[f38e725](https://github.com/li-sky/river-code/commit/f38e725aaf83a9e5ad0a60f5c28a83acd3eec739)。

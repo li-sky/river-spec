@@ -79,7 +79,9 @@ HTTP 错误返回 `{error:string}`，JSON 响应为 `no-store`。创建房间的
 
 ## 状态模型与恢复
 
-公开 `RoomState` 包含 `id/name/hostId/settings/players/hand/messages/version/voiceParticipantIds`。`Player` 区分座位、筹码、连接和休息状态，源码还包含离线时间及主动离开标记。`hand` 来自 `Hand.View(userID)`，额外添加 `deadline` 和 `turnToken`。完整牌堆和其他玩家未公开底牌仅存在私有存储快照。
+公开 `RoomState` 包含 `id/name/hostId/settings/players/hand/messages/version/voiceParticipantIds`。`Player` 区分座位、筹码、连接和休息状态，并包含本桌获胜手数 `wins`，源码还包含离线时间及主动离开标记。`hand` 来自 `Hand.View(userID)`，额外添加 `deadline` 和 `turnToken`。完整牌堆和其他玩家未公开底牌仅存在私有存储快照。
+
+私有快照保存按身份的 `winCounts` 和 `lastCountedHand`。同步结算筹码时，仅对已完成且未计入的手牌更新统计；引擎 winners 内正额赢家每手各加一次，重复身份去重，平分及不同边池赢家分别计数。完成标记、筹码和统计使用相同保存、回滚和广播路径，覆盖普通行动、盲注直接全下及超时结束。读取视图、刷新和重复同步不增加次数。离开／清理成员保留其该桌统计，再连接从统计表恢复 `Player.wins`；新房间从零开始。该统计表和完成标记不对外公开，客户端无设置接口。旧快照缺统计字段时从零初始化并跳过其已完成手牌，旧进行中手牌结束后计入；不回填不存在的历史。
 
 房间摘要不需要有成员身份；建立 WS 后才成为成员。同一身份在同一房间的新 WS 替换旧连接，旧连接的退出回调不会覆盖新连接。新连接从账号同步昵称、头像和个人 emoji。
 
@@ -171,3 +173,7 @@ HTTP 错误返回 `{error:string}`，JSON 响应为 `no-store`。创建房间的
 本人暂离／返回的基线与验证见 [紧凑 UI 计划](../plans/compact-table-ui.md)。`backend/internal/server/sitout_test.go` 覆盖不能指定他人、旁观者拒绝、下一手排除／恢复、进行中手牌保持、快照及保存失败不广播。
 
 紧凑牌桌与本人暂离的当前代码基线：[23f4a52](https://github.com/li-sky/river-code/commit/23f4a521d52202e871c1a2e28a3729d7bd7e4938)。
+
+### 本桌获胜次数验收
+
+2026-10-01 服务端单元测试及真实浏览器计数／重连／退出再加入、320/390/600px 6/8/9人摊牌布局通过；隔离 PostgreSQL 17 数据库及真实房间服务进程重启验证精确次数和已完成手牌去重。详情、旧快照限制及实际验收范围见 [获胜次数计划](../plans/table-win-counter.md)。当前代码基线：[f38e725](https://github.com/li-sky/river-code/commit/f38e725aaf83a9e5ad0a60f5c28a83acd3eec739)。
