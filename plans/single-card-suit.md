@@ -94,8 +94,8 @@
   ],
   "codeCommit": "f177020d21477b8253506b1a7a4cdaeb8787387d",
   "delivery": {
-    "status": "not_released",
-    "notes": ""
+    "status": "local_running",
+    "notes": "2026-10-01（Asia/Shanghai）按用户要求在本机运行最新代码 f177020d21477b8253506b1a7a4cdaeb8787387d。docker compose up -d --build app 成功，保留现有数据库及 postgres_data 卷，app/db 均 healthy。镜像 sha256:4ee9aafdfbba01fe5415cc47227f2bf87f3f23da48d767af9463faaf214f232c；http://localhost:8080 的 healthz、首页、最新 JS/CSS 均返回 200，资源已核对包含单一花色牌面，覆盖已合并的 Emoji、置顶和当前牌型功能。已请求在 Codex 浏览器打开。未推送，未发布生产环境。"
   }
 }
 ```
