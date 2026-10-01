@@ -147,8 +147,8 @@ AC-02/03 的触摸条件：临时样本通过真实组件 DOM 派发 touch 类�
   ],
   "codeCommit": "570cdf039a8e029e72ab3662e4001751ad7a1ca8",
   "delivery": {
-    "status": "not_released",
-    "notes": ""
+    "status": "pushed",
+    "notes": "2026-10-01 已将代码 570cdf039a8e029e72ab3662e4001751ad7a1ca8 与完成规格 8f849a5 推送至各自 origin/main。CI/CD 发布结果尚未确认，pushed 不代表已上线。"
   }
 }
 ```
