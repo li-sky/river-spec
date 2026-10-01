@@ -56,10 +56,20 @@ Docker 多阶段构建前端和 Go 可执行文件，运行容器使用非 root 
 
 后端 test/vet、前端构建、隔离 PostgreSQL 上的三人牌局与重启恢复、服务器及开发者本机通过公网域名的双人 WSS 完整结算均通过。既有 `skyli.xyz` 和 `us1.skyli.xyz` 首页仍返回 200。GitHub OAuth 已使用用户提供的凭据启用，授权跳转和 GitHub App 中的回调地址均为 `https://river.skyli.xyz/api/auth/github/callback`；完整用户授权登录未执行。TURN 未配置，跨网络语音未验收。发布证据见 [部署计划](../plans/deploy-us1.md)。
 
+## GitHub Actions 持续部署
+
+代码仓库 [ci-cd.yml](https://github.com/li-sky/river-code/blob/main/.github/workflows/ci-cd.yml) 对 main PR 运行发布器单元测试、Compose 校验、Go test/vet、前端及生产镜像构建、隔离 PostgreSQL 上的真实发布与回滚演练。main push 和 main 手动执行检查通过后上传完整 SHA 镜像；PR 不执行发布。Actions 使用专用受限 SSH Secret 和固定 known_hosts，生产 `.env` 不进入 GitHub。
+
+us1 上 root 私有 `/opt/river/cd/cd.py` 仅接受合法 SHA 的 deploy/status，不提供 shell 或转发。`river-deploy.timer` 每分钟处理队列，有在线玩家或未结束手牌时等待，包括私人房间。空闲后使用锁、维护 503、重复空闲检查、停止应用、真实数据库备份与清单校验，再切换源码和镜像。维护期间仅 /healthz 继续转发；只有容器、本机与公网健康均通过才开放页面/WebSocket 并记录新版本；数据库容器及生产卷保留。失败切回旧应用和源码，进程中断使用持久事务恢复；两版均不健康时保留维护标记。备份和旧版本保留，不自动恢复数据库或处理不兼容 schema。
+
+Actions 等待最多 10 分钟，仍忙碌时摘要记录 queued，服务器之后继续等待。绿色检查并不等于该版本已发布；线上版本以 `/opt/river/deployed-version` 为准。更新发布器须管理员重新安装，CI 不自行替换 root 运维程序。操作与边界见 [部署说明](https://github.com/li-sky/river-code/blob/main/docs/DEPLOYMENT.md#github-actions-持续部署us1)。Linux 16 项单元测试与 us1 上隔离 PostgreSQL 的在线/手牌暂缓、成功发布、坏镜像回滚、会话保留实际通过，真实流水线证据见 [CD 计划](../plans/github-cd.md)。
+
+2026-10-01T15:13:10Z，main 提交 `a4a15bf28751d195bbca978a887e1e27d6ab7f00` 已由 [Actions 运行 36881976711](https://github.com/li-sky/river-code/actions/runs/36881976711) 自动发布到 us1。生产队列曾因在线玩家等待，玩家退出后定时器自行生成并校验备份、切换应用、完成公网健康检查；最终 deployed-version、镜像标签和 main 一致。原有账号/房间 ID、生产环境文件和数据库容器保留，维护与事务标记清除；失败回滚演练使用独立测试数据库，未在生产投放故障镜像。
+
 ## 当前限制与下一阶段
 
 当前采用单 Go 实例和最新快照恢复，不提供跨服务器房间迁移、完整牌局回放或零停机规则更新。下一阶段可建立稳定试玩环境与独立开发环境，先完成统一开发命令，再按手牌边界安排后端版本更新；具体规格见反馈与迭代方案。
 
 ## 文档与代码入口
 
-[项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。当前源码基线为提交 `4975694`；后续实现变化需同步此规格和验收证据。
+[项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。本次持续部署基线为提交 `a4a15bf28751d195bbca978a887e1e27d6ab7f00`；后续实现变化需同步此规格和验收证据。
