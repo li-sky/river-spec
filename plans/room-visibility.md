@@ -154,8 +154,8 @@ root 已审阅最终差异，目标达成；代码提交为 92c18911c8ae6198441f
   ],
   "codeCommit": "92c18911c8ae6198441f7833e25b7588a8478af1",
   "delivery": {
-    "status": "not_released",
-    "notes": ""
+    "status": "local_running",
+    "notes": "2026-10-01（Asia/Shanghai）按用户要求删除 river-code 的 app/db 旧容器并重建，保留 postgres_data 卷；部署前确认数据库房间数为 0。docker compose up -d --build --wait 成功，镜像 sha256:ae111f51f3a9de2007bd3d27d3fc8df8ca041e9a4e70c0c743281ba28ea8648a，app/db 均 healthy。http://localhost:8080 的 healthz、首页和 JS 资源均返回 200，实际资源包含公开／私人设置 UI；未发布生产环境。"
   }
 }
 ```
