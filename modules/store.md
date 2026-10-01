@@ -129,3 +129,5 @@
 ### 本桌获胜次数验收
 
 2026-10-01 服务端单元测试及真实浏览器计数／重连／退出再加入、320/390/600px 6/8/9人摊牌布局通过；隔离 PostgreSQL 17 数据库及真实房间服务进程重启验证精确次数和已完成手牌去重。详情、旧快照限制及实际验收范围见 [获胜次数计划](../plans/table-win-counter.md)。当前代码基线：[f38e725](https://github.com/li-sky/river-code/commit/f38e725aaf83a9e5ad0a60f5c28a83acd3eec739)。
+
+消息撤回继续通过房间 JSON 快照持久化，不调用独立消息表：`Messages` 中保留作者、时间和 ID，清空 text 并保存 `recalled:true`；撤回关联置顶时清空 `pinnedMessage`。旧快照没有 recalled 字段保持普通消息，无 SQL 迁移。保存失败时服务端回滚内容与版本，不广播。实际恢复及故障测试见 [聊天气泡计划](../plans/chat-bubbles.md)。

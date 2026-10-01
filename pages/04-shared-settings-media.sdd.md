@@ -197,3 +197,5 @@
 紧凑牌桌与本人暂离的当前代码基线：[23f4a52](https://github.com/li-sky/river-code/commit/23f4a521d52202e871c1a2e28a3729d7bd7e4938)。
 
 页面中部与互斥抽屉手势代码基线：[f91654c](https://github.com/li-sky/river-code/commit/f91654cc41b4d590e7b25e82097a93fd5e3e98b3)，验收见 [手势修复计划](../plans/drawer-gesture-conflicts.md)。
+
+聊天气泡通过 Chatscope Chat UI Kit 的 Message（显式 type=text）、TextContent、Header/Footer、Avatar 复用成熟组件，`ChatBubble` 负责类型与主题适配，`ChatMessages` 负责业务权限并组合 Radix Context Menu。没有自写长按计时或菜单定位/导航；沿用库的 700ms 长按，补充多指取消、键盘入口、滚动关闭及长按松手事件处理。桌面右键、手机长按访问复制/房主置顶/本人撤回，写操作断线禁用。撤回状态同步清除相同消息来源的头像文字，保留新的其他消息/Emoji 气泡。菜单关闭与焦点规则、手机布局以及服务端撤回权限见 [聊天气泡计划](../plans/chat-bubbles.md)。

@@ -65,3 +65,5 @@ python3 scripts/sdd.py finish plans/mobile-raise-input.md
 运行所需技术说明随代码保存；本仓库集中维护模块与页面规格，行为变化时同步相应契约、测试和规格。
 
 2026-10-01 紧凑牌桌改进已完成：单层顶栏、左右抽屉、固定四动作底栏、Raise 金额弹窗和本人暂离／返回；代码基线 `23f4a521d52202e871c1a2e28a3729d7bd7e4938`。双人／九人浏览器、短全下、延迟响应、暂离快照与回滚证据见 [紧凑 UI 计划](plans/compact-table-ui.md)。本机 http://localhost:8080 已更新并健康，保留原数据库；未推送或发布生产。
+
+2026-10-01 聊天气泡改进在独立 feat/chat-bubbles worktree 完成：复用 Chatscope 与 Radix，实现微信式左右气泡、桌面右键/手机长按菜单、复制、房主置顶和本人两分钟撤回。代码基线 `215a1fd`，双会话与权限/恢复证据见 [聊天气泡计划](plans/chat-bubbles.md)。未合并主目录、推送或部署。
