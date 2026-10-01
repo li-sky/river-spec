@@ -38,6 +38,8 @@
 
 ### 房间快照与消息
 
+房主置顶消息通过完整房间快照中的 `pinnedMessage: Message|null` 保存，独立于最近 100 条 `Messages`；裁剪不影响置顶。房间服务负责 ID 查找、权限、保存后广播及失败回滚；存储层仍只保存 JSON。无需新增 SQL 字段或采用独立消息表，旧快照缺置顶字段时由房间服务恢复为 null。实现与验证见 [置顶计划](../plans/host-pin-message.md)。
+
 `SaveRoom` 要求输入是合法 JSON，然后将 ID、名称、房主 ID 和完整快照一次写入；PostgreSQL 更新 `updated_at`，内存复制输入字节避免外部修改。`LoadRooms` 读取所有房间，PostgreSQL 按 `updated_at` 排序；内存映射遍历顺序不保证稳定。JSON 校验只保证语法，不验证必须为对象、牌局规则、资金守恒或 schema。
 
 独立消息接口 `SaveMessage/LoadMessages` 已实现：保存合法 JSON，裁剪至每房间最近 100 条，读取按时间顺序对应的自增 ID 顺序返回。PostgreSQL 的插入和裁剪处于同一事务；内存锁内操作并复制字节。
