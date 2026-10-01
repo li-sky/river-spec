@@ -21,6 +21,7 @@
 | TABLE-R05 | 游戏 UI、卡牌及音效 | 原生卡牌、筹码、庄家标记、行动高亮、胜者状态和事件音效 |
 | TABLE-R06 | 语音、定向 Emoji、自身 Emoji 和文字气泡 | 使用真实 WebRTC 信令、服务器消息和 Emoji 事件；规则及限制见共享模块文档 |
 | TABLE-R07 | 手机竖屏、平板与电脑横屏布局 | 手机牌桌纵向布局，手机与平板底牌放入操作区；宽桌面底牌保留在自身座位旁 |
+| TABLE-R08 | 按当前公开牌面自动计算手牌组合并显示在玩家旁边 | 服务端结合可见底牌与已发公共牌计算当前最佳五张牌型，座位筹码下方和手机底牌区展示 |
 
 ## 现有行为
 
@@ -39,6 +40,8 @@
 - 自己已入座时，将视觉座位旋转到牌桌下方；实际座位编号和行动次序仍来自服务器。
 
 - 对手未公开的底牌显示牌背；自己的底牌及允许公开的摊牌由服务器个性化视图决定。前端不会自行获得或恢复对手私牌。
+
+- 翻牌开始以 `HandPlayer.currentHand` 显示“当前：一对”等最佳五张牌型，随当前公共牌的快照更新；本人座位筹码下方显示，手机底牌区同步显示。摊牌后未弃牌对手也显示，隐藏对手、旁观期间未摊牌、已弃牌及下一手翻牌前不显示。前端不计算结果，牌型不表示获胜、胜率或未来听牌。新增标签下方预留间距。手机与平板操作区同步显示当前牌型，布局与主线 UI 改进一致。
 
 - 1180px 及以下宽度分支中，自己两张底牌移至操作区，避免九人桌头像和筹码遮挡；宽桌面保持座位旁底牌。CSS 隐藏另一种布局，验收应检查可见卡牌。
 
@@ -103,6 +106,7 @@
 | TABLE-AC07 | 双端聊天气泡、头像 Emoji 更新、定向互动可见；用户音效设置不覆盖 Emoji | [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py) |
 | TABLE-AC08 | 系统与房间开启语音后，九端各连接八名成员；退出、移出、刷新清理并可重新加入 | [scripts/table_layout_check.py](https://github.com/li-sky/river-code/blob/main/scripts/table_layout_check.py) 的完整语音模式、[scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py)、媒体单元测试 |
 | TABLE-AC09 | 首次房间请求失败、被移出和普通断线分别显示适当处理 | 4003 路径有主流程覆盖；首次失败与持续弱网应补充专项场景 |
+| TABLE-AC10 | 翻牌至河牌更新本人牌型，摊牌后显示公开对手，弃牌和换手清除；手机底牌区与座位结果一致且不被操作区遮挡 | `backend/internal/poker/current_hand_test.go`；本次独立双人服务及桌面、390px、320px 浏览器验收记录见 [当前牌型计划](../plans/current-hand-rank.md) |
 
 仓库 [docs/VERIFICATION.md](https://github.com/li-sky/river-code/blob/main/docs/VERIFICATION.md) 记录既有执行结果；验收表不表示每次文档更新都重新执行了该场景。语音跨公网网络、真实 TURN 和人的听感仍需部署验证。
 
@@ -149,3 +153,5 @@
 ## 文档与代码入口
 
 [项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。当前实现基线为提交 [3fb5101](https://github.com/li-sky/river-code/commit/3fb51017e9594191d01d1e372a663c457217a25c)；后续实现变化需同步此规格和验收证据。
+
+当前可见牌型提示实现基线：`8a2be43d24690b0884749d483d50c9f63a36697e`，验收见 [当前牌型计划](../plans/current-hand-rank.md)。
