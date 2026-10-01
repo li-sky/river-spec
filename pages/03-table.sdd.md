@@ -1,0 +1,135 @@
+# RIVER 牌桌页规格
+
+- 基线日期：2026-10-01。
+
+- 页面标识：`TABLE`；已登录且 URL 带 `room` 参数时显示，地址为 `/?room=<房间 ID>`。
+
+- 术语：配置属于系统；设置属于用户或房间。host 是房主，guest 是加入房间的人；访客是身份类型，旁观者是尚未坐下的房间状态。
+
+## 目的
+
+提供能够实际进行多人无限注德州扑克现金桌的交互界面。页面展示服务器提供的个性化状态，允许玩家合法下注，支持房主管理、重连、语音和轻量社交。
+
+## 已确认需求
+
+| 编号 | 需求 | 当前落实方式 |
+| --- | --- | --- |
+| TABLE-R01 | No-Limit Texas Hold’em 现金桌 | 服务器负责发牌、下注校验、边池、分池及结算；前端使用整数娱乐筹码 |
+| TABLE-R02 | 房主/加入者角色和管理权限 | 房主开始下一手、修改房间设置、调整筹码和移出其他玩家；服务端再校验权限 |
+| TABLE-R03 | 行动限时、断线重连 | 展示行动倒计时与连接状态；重连采用退避；超时由服务器处理 |
+| TABLE-R04 | 适当解耦规则判定 | 前端展示状态和提交动作，不计算获胜牌型或结算；独立牌局规则包位于后端 |
+| TABLE-R05 | 游戏 UI、卡牌及音效 | 原生卡牌、筹码、庄家标记、行动高亮、胜者状态和事件音效 |
+| TABLE-R06 | 语音、定向 Emoji、自身 Emoji 和文字气泡 | 使用真实 WebRTC 信令、服务器消息和 Emoji 事件；规则及限制见共享模块文档 |
+| TABLE-R07 | 手机竖屏、平板与电脑横屏布局 | 手机牌桌纵向布局，底牌放入操作区；较宽设备底牌保留在自身座位旁 |
+
+## 现有行为
+
+### 加入与连接
+
+先调用 `GET /api/rooms/:id` 读取个性化状态，成功后建立同源 `/api/rooms/:id/ws` WebSocket。加入房间后可先旁观：`seat=-1` 的成员不占座位。坐下通过空座位按钮打开“准备入座”弹窗，买入范围为 2 倍大盲至 10 亿筹码；默认取房间买入设置。
+
+当前前端在一手进行期间禁用空位入座与离座按钮；不存在前端的“预约下一手入座”流程。已入座玩家等待房主开局。房主只有在当前手不活跃、至少两名有筹码且未暂停参与的玩家入座时，才能点击“开始牌局”或“开始下一手”。
+
+离座发送 `stand`，离开房间的返回按钮发送 `leave`、退出语音并返回大厅。顶栏品牌跳转和浏览器历史变化只是切换页面并清理连接，不等同于返回按钮显式发送 `leave`；离线成员的后续处理由服务器负责。
+
+### 牌局展示
+
+展示房间名称、房主标记、盲注、连接状态、入座/旁观人数、手数、阶段、底池、五张公共牌位、座位、筹码、当轮下注、庄家、弃牌、All-in、倒计时及胜者信息。
+
+- 自己已入座时，将视觉座位旋转到牌桌下方；实际座位编号和行动次序仍来自服务器。
+
+- 对手未公开的底牌显示牌背；自己的底牌及允许公开的摊牌由服务器个性化视图决定。前端不会自行获得或恢复对手私牌。
+
+- 手机宽度分支中，自己两张底牌移至操作区，避免九人桌头像和筹码遮挡；桌面保持座位旁底牌。CSS 隐藏另一种布局，验收应检查可见卡牌。
+
+- 有文字或头像 Emoji 更新时，已显示头像的成员出现短暂思考气泡；定向 Emoji 按实际牌桌尺寸飞向目标头像。
+
+- “服务器公正发牌”为现有界面文案；本基线不将其扩大为密码学可验证发牌证明。
+
+### 行动接口与金额语义
+
+仅轮到当前用户且未弃牌时显示行动操作区。
+
+| 动作 | 现有前端行为 |
+| --- | --- |
+| 弃牌 | 发送 `action:'fold'` |
+| 过牌/跟注 | 无需补足时显示过牌，否则显示应跟筹码，最多到用户剩余筹码 |
+| 加注至 | `amount` 为本轮累计下注总额，最小金额为 `currentBet + minRaise`；使用服务端 `canRaise` 授权并检查上下界 |
+| All-in | 全部剩余筹码；若总额超过当前下注，必须具备 `canRaise`；不足完整加注的全下仍可按服务器合法性执行 |
+| 金额调整 | 滑块、数字输入及 2/3/4×BB、½ 底池快捷选项；不足完整加注时不显示普通加注控件 |
+
+每次行动带服务器 `turnToken`。本地记录已发送的令牌，忽略同一令牌的重复点击；服务器错误会释放本地记录，服务器也拒绝过期令牌。倒计时仅用于展示，不能替代服务器行动计时。
+
+### 房主管理与邀请
+
+房主设置弹窗可查看并调整房间设置，针对已入座玩家设置筹码总额、移出其他玩家。前端限制这些操作在两手之间执行；不能移出自己。房主管理最终依赖服务端身份及当前牌局状态校验。
+
+邀请按钮复制当前牌桌链接；成功短暂显示“链接已复制”。剪贴板不可用时打开只读链接弹窗供手动复制。该弹窗、玩法说明、买入、房间设置和 Emoji 选择器均不是独立路由。
+
+## 权限 状态与错误处理
+
+| 状态/角色 | 现有行为 |
+| --- | --- |
+| 非房主 | 不显示房间设置与开始下一手入口；无法通过接口绕过服务端权限 |
+| 旁观者 | 可观看公共状态并按空位入座；文字/互动受系统与房间开关控制，语音另受服务端名单约束 |
+| 未轮到自己、已弃牌或 All-in | 展示等待/结果提示，不提供当前下注操作 |
+| 正在行动 | 高亮当前座位与倒计时；剩余时间较少时使用紧急视觉状态 |
+| 无网络连接 | 显示“重新连接中”，多数需要发送请求的操作禁用；发送保护提示等待恢复 |
+| 普通 WebSocket 关闭 | 以 1 秒起始指数退避重试，上限 10 秒；成功后恢复连接状态 |
+| 被房主移出，关闭码 4003 | 显示服务器理由，返回大厅，不自动重连该牌桌 |
+| 初始房间请求失败 | 显示“无法进入这张牌桌”、全局错误及返回大厅入口 |
+| 服务器拒绝动作/设置 | 全局错误提示；状态以随后的服务端快照为准 |
+| 名称或头像更新 | 读取新用户后重建牌桌连接，确保房间成员展示刷新；不同于产品代码热更新 |
+| 页面清理 | 关闭 socket、重试和倒计时；媒体模块销毁连接并停止麦克风 |
+
+超时自动过牌或弃牌、房主迁移和离线席位清理由后端负责；前端没有对应的自结算或自迁移逻辑。完整可回放的牌局历史界面尚未实现。
+
+## 验收场景
+
+| 编号 | 场景与预期 | 现有验证入口 |
+| --- | --- | --- |
+| TABLE-AC01 | 两个独立会话创建、进入同一桌、买入、房主开局，双方只收到应见底牌 | [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py)、[scripts/smoke.py](https://github.com/li-sky/river-code/blob/main/scripts/smoke.py)；私牌也由服务端测试验证 |
+| TABLE-AC02 | 完整行动、All-in、边池和分池由服务器完成，显示正确筹码与结果 | [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py)、[scripts/smoke.py](https://github.com/li-sky/river-code/blob/main/scripts/smoke.py)、[backend/internal/poker/engine_test.go](https://github.com/li-sky/river-code/blob/main/backend/internal/poker/engine_test.go) |
+| TABLE-AC03 | 无权管理、短全下未重新开放加注、过期或重复行动令牌不能改变下一轮状态 | [backend/internal/server/server_test.go](https://github.com/li-sky/river-code/blob/main/backend/internal/server/server_test.go)、[backend/internal/poker/engine_test.go](https://github.com/li-sky/river-code/blob/main/backend/internal/poker/engine_test.go) 及前端合法按钮逻辑 |
+| TABLE-AC04 | 超时、断线和进程重启后保持底牌、筹码、截止时间与动作合法性 | [scripts/smoke.py](https://github.com/li-sky/river-code/blob/main/scripts/smoke.py)、[scripts/recovery_check.py](https://github.com/li-sky/river-code/blob/main/scripts/recovery_check.py) |
+| TABLE-AC05 | 房主两手间修改盲注/筹码；移出后目标返回大厅，语音随之清理 | [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py)、[backend/internal/server/server_test.go](https://github.com/li-sky/river-code/blob/main/backend/internal/server/server_test.go) |
+| TABLE-AC06 | 九名真实玩家入座，桌面、平板和手机无横向溢出或头像相交，手机底牌清楚可见 | [scripts/table_layout_check.py](https://github.com/li-sky/river-code/blob/main/scripts/table_layout_check.py)；卡牌可读性还应人工核查截图 |
+| TABLE-AC07 | 双端聊天气泡、头像 Emoji 更新、定向互动可见；用户音效设置不覆盖 Emoji | [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py) |
+| TABLE-AC08 | 系统与房间开启语音后，九端各连接八名成员；退出、移出、刷新清理并可重新加入 | [scripts/table_layout_check.py](https://github.com/li-sky/river-code/blob/main/scripts/table_layout_check.py) 的完整语音模式、[scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py)、媒体单元测试 |
+| TABLE-AC09 | 首次房间请求失败、被移出和普通断线分别显示适当处理 | 4003 路径有主流程覆盖；首次失败与持续弱网应补充专项场景 |
+
+仓库 [docs/VERIFICATION.md](https://github.com/li-sky/river-code/blob/main/docs/VERIFICATION.md) 记录既有执行结果；验收表不表示每次文档更新都重新执行了该场景。语音跨公网网络、真实 TURN 和人的听感仍需部署验证。
+
+## 实现与测试相对路径
+
+路径均相对于 `仓库根目录`。
+
+| 路径 | 职责 |
+| --- | --- |
+| [frontend/src/App.tsx](https://github.com/li-sky/river-code/blob/main/frontend/src/App.tsx) | `Room`、座位、动作、状态消费、倒计时、房主管理及弹窗 |
+| [frontend/src/style.css](https://github.com/li-sky/river-code/blob/main/frontend/src/style.css) | 牌桌、卡牌、动画、九人布局、手机底牌和操作区 |
+| [frontend/src/lib/types.ts](https://github.com/li-sky/river-code/blob/main/frontend/src/lib/types.ts)、[frontend/src/lib/api.ts](https://github.com/li-sky/river-code/blob/main/frontend/src/lib/api.ts) | 个性化状态类型、HTTP 请求 |
+| [frontend/src/lib/voice.ts](https://github.com/li-sky/river-code/blob/main/frontend/src/lib/voice.ts)、[frontend/src/lib/sound.ts](https://github.com/li-sky/river-code/blob/main/frontend/src/lib/sound.ts) | 媒体与音效，见共享模块 |
+| [backend/internal/server/server.go](https://github.com/li-sky/river-code/blob/main/backend/internal/server/server.go)、[backend/internal/server/commands.go](https://github.com/li-sky/river-code/blob/main/backend/internal/server/commands.go) | 个性化视图、连接、房主管理、计时、信令与社交事件 |
+| [backend/internal/poker/engine.go](https://github.com/li-sky/river-code/blob/main/backend/internal/poker/engine.go)、[backend/internal/poker/engine_test.go](https://github.com/li-sky/river-code/blob/main/backend/internal/poker/engine_test.go) | 无网络依赖的规则及结算 |
+| [backend/internal/server/server_test.go](https://github.com/li-sky/river-code/blob/main/backend/internal/server/server_test.go) | 权限、连接和状态校验 |
+| [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py)、[scripts/table_layout_check.py](https://github.com/li-sky/river-code/blob/main/scripts/table_layout_check.py)、[scripts/smoke.py](https://github.com/li-sky/river-code/blob/main/scripts/smoke.py)、[scripts/recovery_check.py](https://github.com/li-sky/river-code/blob/main/scripts/recovery_check.py) | 实际多人、布局、媒体及恢复验收 |
+| [docs/CONTRACT.md](https://github.com/li-sky/river-code/blob/main/docs/CONTRACT.md)、[docs/VERIFICATION.md](https://github.com/li-sky/river-code/blob/main/docs/VERIFICATION.md) | 消息语义与既有结果 |
+
+## 待实现改进与待验证事项
+
+1. 朋友反馈驱动的易用性调整仅是方案。尚无实际反馈条目、反馈入口或反馈优先级管理；应先收集真实操作困难再形成变更。
+
+2. 面向进行中牌局的热更新仅是待设计方案。当前 WebSocket 重连和数据库快照恢复不能证明无中断升级；仍需版本协商、旧新客户端兼容及升级期间行动令牌场景。
+
+3. 行动发出后的等待状态目前依赖令牌去重，没有独立的“正在提交”视觉反馈；可补充弱网反馈和明确的重试机制。
+
+4. 暂无下一手预约入座、完整手牌回放、牌局历史页面和房间设置变更日志；不能把最新快照恢复写成完整历史。
+
+5. 对“公正发牌”的独立可验证机制尚未实现；牌局合法性、私牌隔离和规则测试不等同于密码学公平证明。
+
+6. 顶部品牌导航与返回按钮的离开语义可进一步统一；当前它们发送的消息不同，应纳入朋友试用后的设计评审。
+
+## 文档与代码入口
+
+[项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。当前源码基线为提交 `4975694`；后续实现变化需同步此规格和验收证据。
