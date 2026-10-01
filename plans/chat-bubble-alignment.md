@@ -5,7 +5,7 @@
 ```json
 {
   "id": "chat-bubble-alignment",
-  "status": "draft",
+  "status": "in_progress",
   "specs": [
     "table",
     "shared"
