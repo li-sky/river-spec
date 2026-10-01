@@ -51,6 +51,8 @@ python3 scripts/sdd.py finish plans/mobile-raise-input.md
 
 [spec-map.json](spec-map.json) 提供机器可读的源码与规格对应关系。规格基线对应代码仓库提交 `4975694e5a0793a1ffaec30deecb57d181e4d791`。
 
+公开／私人房间变更基于代码提交 `92c18911c8ae6198441f7833e25b7588a8478af1` 更新 server/lobby/shared/table 规格，验收证据见 [房间可见性计划](plans/room-visibility.md)。可见性必填，不兼容缺少字段的旧请求或快照；完成开发，尚未部署。
+
 2026 年 10 月 1 日已通过后端 `go test ./...` 与前端 `npm run build`。测试表记录验收要求和源码覆盖，不代表每次文档变更都重新执行所有外部验收；真实 PostgreSQL、多人浏览器、GitHub OAuth 与公网 TURN 的验证范围以记录为准。
 
 - [HTTP 与 WebSocket 契约](https://github.com/li-sky/river-code/blob/main/docs/CONTRACT.md)
