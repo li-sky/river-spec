@@ -38,7 +38,7 @@
 
 引擎只识别参与者 ID，不识别房主、加入者、注册用户或访客。即使调用者是房主，也不能越过行动顺序或查看对手未公开底牌。身份权限、行动令牌和房间准入均由 `server`／`identity` 执行。
 
-`Hand` 的可 JSON 序列化字段包含完整底牌、`Deck`、`DrawIndex` 和加注权判断信息，只可作为私有持久化状态。公开接口必须使用 `HandView`。公开手牌包含 `number/phase/board/pot/dealerSeat/turnSeat/currentBet/minRaise/players/winners`；各玩家投影包含 `id/seat/bet/totalBet/folded/allIn/cards/acted/canRaise`。`deadline` 和 `turnToken` 由上层添加。
+`Hand` 的可 JSON 序列化字段包含完整底牌、`Deck`、`DrawIndex` 和加注权判断信息，只可作为私有持久化状态。公开接口必须使用 `HandView`。公开手牌包含 `number/phase/board/pot/dealerSeat/turnSeat/currentBet/minRaise/players/winners`；各玩家投影包含 `id/seat/bet/totalBet/folded/allIn/cards/acted/canRaise`，另有可选 `currentHand` 当前可见牌型提示。`deadline` 和 `turnToken` 由上层添加。
 
 `canRaise` 表示有加注权且存在可跟注对手，包括合法的短 all-in；普通加注仍须满足最小增量。它不是绕过 `Action` 验证的授权凭据。
 
@@ -65,6 +65,12 @@
 - `Hand` 不自带锁；上层必须串行访问同一手牌。JSON 恢复本身不是对任意输入的完整结构验证器，牌堆和阶段字段假定来自受信任的服务端快照。
 
 ## 关键验收场景与测试证据
+
+### 当前可见牌型提示
+
+`HandPlayer.currentHand?: string` 在每次 `View(viewerID)` 中由现有 `Evaluate` 计算，仅使用该观看者可见的两张底牌及已经发出的 3～5 张公共牌，返回最佳五张牌的中文类别。翻牌前、隐藏底牌、已弃牌及无效输入省略此字段；所有公共牌已发出时允许最佳组合完全取自公共牌。本人从翻牌开始获得提示，其他观看者只在摊牌公开未弃牌底牌后获得提示；弃牌获胜不额外公开牌型。提示属于客户端投影，不进入私有持久化状态，不改变结算，不读取牌堆或未来公共牌。旧客户端可以忽略可选字段，新客户端在字段缺失时隐藏提示。
+
+回归验证入口为 `backend/internal/poker/current_hand_test.go`：逐轮一对→三条→葫芦、双玩家及旁观者的 JSON 隔离、隐藏底牌改变不影响他人视图、摊牌公开、弃牌及下一手清除、公共牌最佳五张、A2345、非法输入省略和投影不改变原始状态。实际执行证据见 [当前牌型计划](../plans/current-hand-rank.md)。
 
 | 场景 | 对应测试 |
 | --- | --- |
@@ -103,3 +109,5 @@
 ## 文档与代码入口
 
 [项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。当前源码基线为提交 `4975694`；后续实现变化需同步此规格和验收证据。
+
+当前可见牌型提示实现基线：`8a2be43d24690b0884749d483d50c9f63a36697e`，验收见 [当前牌型计划](../plans/current-hand-rank.md)。
