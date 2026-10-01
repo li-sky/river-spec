@@ -63,3 +63,5 @@ python3 scripts/sdd.py finish plans/mobile-raise-input.md
 - [组件与素材来源](https://github.com/li-sky/river-code/blob/main/docs/CREDITS.md)
 
 运行所需技术说明随代码保存；本仓库集中维护模块与页面规格，行为变化时同步相应契约、测试和规格。
+
+2026-10-01 紧凑牌桌改进已完成：单层顶栏、左右抽屉、固定四动作底栏、Raise 金额弹窗和本人暂离／返回；代码基线 `23f4a521d52202e871c1a2e28a3729d7bd7e4938`。双人／九人浏览器、短全下、延迟响应、暂离快照与回滚证据见 [紧凑 UI 计划](plans/compact-table-ui.md)。本机 http://localhost:8080 已更新并健康，保留原数据库；未推送或发布生产。

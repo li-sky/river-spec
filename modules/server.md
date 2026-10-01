@@ -35,6 +35,7 @@ HTTP 错误返回 `{error:string}`，JSON 响应为 `no-store`。创建房间的
 | `type` | 输入关键字段 | 当前权限与条件 |
 | --- | --- | --- |
 | `sit` | `seat`、可选 `buyIn` | 成员自行入座；只在两手之间，目标座位空闲，范围符合人数上限。省略／0 买入使用本房间默认值。 |
+| `sitout` | `sittingOut` 布尔值 | 仅本人且已入座；保留座位与筹码，跳过下一手或恢复参与，当前手及行动令牌不变。使用原有快照保存和失败回滚。 |
 | `stand` | 无 | 成员自行离座；只在两手之间，设置座位为 `-1`。 |
 | `start` | 无 | 仅房主开始下一手；不能覆盖进行中的手牌，至少两名在线、入座、有筹码且未休息的有效身份玩家。 |
 | `action` | `action`、`amount`、`turnToken` | 当前行动者；动作由引擎验证。加注 `amount` 是本轮总额；令牌须来自最新状态，拒绝旧动作和重复提交。 |
@@ -166,3 +167,7 @@ HTTP 错误返回 `{error:string}`，JSON 响应为 `no-store`。创建房间的
 ## 文档与代码入口
 
 [项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。公开／私人房间实现基线为提交 `92c1891`；后续实现变化需同步此规格和验收证据。
+
+本人暂离／返回的基线与验证见 [紧凑 UI 计划](../plans/compact-table-ui.md)。`backend/internal/server/sitout_test.go` 覆盖不能指定他人、旁观者拒绝、下一手排除／恢复、进行中手牌保持、快照及保存失败不广播。
+
+紧凑牌桌与本人暂离的当前代码基线：[23f4a52](https://github.com/li-sky/river-code/commit/23f4a521d52202e871c1a2e28a3729d7bd7e4938)。

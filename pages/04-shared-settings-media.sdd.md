@@ -21,14 +21,16 @@
 | SHARED-R03 | 语音相关能力放在系统配置与单局设置中 | 系统功能许可与默认模式、房间语音开关与模式、旁观者许可共同约束；用户可在当前语音会话临时切换模式 |
 | SHARED-R04 | 良好的发牌和筹码音效 | 浏览器合成发牌、筹码、弃牌、获胜和 reaction 提示音 |
 | SHARED-R05 | 语音聊天、定向反应、自身头像表情和文字气泡 | WebRTC 实时媒体；房间 WebSocket 驱动消息、反应及头像更新 |
-| SHARED-R06 | 手机、平板和电脑均可操作 | 响应式弹窗、桌面聊天面板、手机浮层及指针控制的按住说话 |
+| SHARED-R06 | 手机、平板和电脑均可操作 | 响应式弹窗、两侧抽屉、固定牌桌底栏及指针控制的按住说话 |
 | SHARED-R07 | 尽可能复用公共组件 | Radix Dialog/Switch、Lucide 图标、emoji-picker-react 完整表情选择器；原生样式与合成音效承担游戏表现 |
 
 ## 现有行为
 
 ### 组件边界
 
-`Modal` 包装 Radix Dialog，包含遮罩、标题、描述和关闭入口。`Toggle` 包装 Radix Switch，提供与可见字段相同的无障碍名称；`Button`、`Avatar` 和 `Card` 共用。弹窗在屏幕内限制宽度与高度，较长内容内部滚动，布局考虑 safe-area。按钮、开关、输入、滑块与上传入口的操作区域至少 48px，辅助文字至少 14px、表单文字至少 16px；按钮和输入提供明确的键盘焦点描边。
+`Modal` 包装 Radix Dialog，包含遮罩、标题、描述和关闭入口。`Toggle` 包装 Radix Switch，提供与可见字段相同的无障碍名称；`Button`、`Avatar` 和 `Card` 共用。弹窗在屏幕内限制宽度与高度，较长内容内部滚动，布局考虑 safe-area。主要按钮、开关、输入、滑块与上传入口的操作区域至少 48px；紧凑牌桌顶栏图标至少 44px，辅助文字至少 14px、表单文字至少 16px；按钮和输入提供明确的键盘焦点描边。
+
+`Drawer` 同样包装 Radix Dialog，左侧用于牌桌工具、右侧用于聊天；遮罩、焦点约束、Escape、关闭后焦点恢复共用 Dialog 行为。抽屉宽度有界、覆盖屏幕高度，保持聊天输入和置顶区可见。页面边缘向内滑动打开，抽屉向外滑动关闭；输入和按钮上的触摸不触发抽屉手势。
 
 减少动态效果偏好会缩短一般动画、移除行动计时的持续闪烁；定向 Emoji 保留目标位置的静态反馈而不是在取消动画后消失。聊天开关声明展开状态与受控面板，Enter 继续发送文字。短动画用于状态变化，不增加媒体、消息或手柄输入协议。
 
@@ -186,6 +188,10 @@
 
 ## 文档与代码入口
 
-[项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。当前实现基线为提交 [3fb5101](https://github.com/li-sky/river-code/commit/3fb51017e9594191d01d1e372a663c457217a25c)；后续实现变化需同步此规格和验收证据。
+[项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。前次可读性改进基线为提交 [3fb5101](https://github.com/li-sky/river-code/commit/3fb51017e9594191d01d1e372a663c457217a25c)；后续实现变化需同步此规格和验收证据。
 
 完整 Emoji 选择器与组合头像保存的实现基线为代码提交 `0e8d22b6a6708aaf0777586a8bee305ce8b4f7da`；开发验收见 [完整 Emoji 计划](../plans/all-emoji.md)，已集成本地主线，未发布。
+
+紧凑顶栏、左右抽屉、移动聊天／置顶和 Raise 金额弹窗的当前实现与真实浏览器证据见 [紧凑 UI 计划](../plans/compact-table-ui.md)。本次移动了语音入口，未修改信令或媒体生命周期，也未重新宣称公网语音验收。
+
+紧凑牌桌与本人暂离的当前代码基线：[23f4a52](https://github.com/li-sky/river-code/commit/23f4a521d52202e871c1a2e28a3729d7bd7e4938)。
