@@ -55,6 +55,8 @@ python3 scripts/sdd.py finish plans/mobile-raise-input.md
 
 2026 年 10 月 1 日已通过后端 `go test ./...` 与前端 `npm run build`。测试表记录验收要求和源码覆盖，不代表每次文档变更都重新执行所有外部验收；真实 PostgreSQL、多人浏览器、GitHub OAuth 与公网 TURN 的验证范围以记录为准。
 
+2026 年 10 月 1 日已将完整 Emoji、房主置顶消息、当前可见手牌牌型的代码与规格 worktree 合入各自本地 `main`，保留主线房间可见性和 UI 可读性改进。集成代码基线为 `8bdbd38`，具体合并提交、后端 test/vet、前端构建、双仓链接及隔离内存服务上的桌面/手机双会话验证见 [worktree 集成计划](plans/merge-worktrees.md)。本次未推送或部署，原功能计划中的独立分支证据保留为历史记录。
+
 - [HTTP 与 WebSocket 契约](https://github.com/li-sky/river-code/blob/main/docs/CONTRACT.md)
 - [部署说明](https://github.com/li-sky/river-code/blob/main/docs/DEPLOYMENT.md)
 - [已有验证记录](https://github.com/li-sky/river-code/blob/main/docs/VERIFICATION.md)
