@@ -19,7 +19,9 @@
 | 访客 | 系统配置允许时创建独立身份及会话；无账号密码；需验证统一加入密码；没有凭昵称找回身份的接口 |
 | GitHub | 使用稳定的 GitHub 数字 ID 查找或创建账号；初次创建时使用 GitHub 昵称、登录名回退及合法头像；已有账号不会每次登录覆盖资料 |
 | 新身份设置 | `soundEnabled=true`、`volume=0.65`、`voiceMuted=true`、`avatarEmoji=""` |
-| 设置校验 | 音量范围 0–1；头像 emoji 最多 8 个 Unicode 字符、40 字节，拒绝 CR/LF/NUL；允许空值清除 emoji |
+| 设置校验 | 音量范围 0–1；头像 emoji 最多 16 个 Unicode 码点、64 个 UTF-8 字节，与房间命令一致，支持多人物肤色组合；拒绝 CR/LF/NUL；允许空值清除 emoji |
+
+组合 Emoji 保存上限的代码基线为 `0e8d22b6a6708aaf0777586a8bee305ce8b4f7da`，验证入口为 `TestEmojiSequencesAndLimits`（SetEmoji、PATCH、持久化读取和拒绝输入后保持原值），本次证据见 [完整 Emoji 计划](../plans/all-emoji.md)。
 
 自建账号注册默认使用 Gravatar：对规范化邮箱计算 MD5，生成带 identicon 回退的头像 URL。这里的 MD5 是 Gravatar 标识格式，密码和会话不使用 MD5。
 
