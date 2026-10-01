@@ -164,3 +164,9 @@
 2026-10-01 在隔离的本机内存服务与真实浏览器会话上完成 320、390、768、1440px 检查：顶栏无溢出，四动作底栏固定，左右抽屉、模拟触摸滑动、Escape／焦点恢复、聊天／置顶可用。真实双人牌局核查普通加注、跟注、过牌、弃牌、All-in、短全下及行动更新关闭弹窗；九人会话头像无重叠，本人座位滚到底后不被底栏覆盖。服务端暂离测试覆盖本人范围、保留座位／筹码、当前手不变、下一手排除、快照与保存回滚。详细证据、限制与代码基线见 [紧凑 UI 计划](../plans/compact-table-ui.md)，验收入口为 `scripts/compact_ui_check.cjs` 与 `backend/internal/server/sitout_test.go`。
 
 紧凑牌桌与本人暂离的当前代码基线：[23f4a52](https://github.com/li-sky/river-code/commit/23f4a521d52202e871c1a2e28a3729d7bd7e4938)。
+
+### 页面中部抽屉手势
+
+房间页非控件区域向右滑打开左菜单、向左滑打开右聊天，中部和边缘均有效，支持触摸、鼠标拖动及触控板水平滚动。打开菜单后左滑只关闭菜单，打开聊天后右滑只关闭聊天；两个抽屉互斥，同一手势不跨侧触发。纵向滚动、短划、取消、多指、按钮和金额滑块不切换抽屉，聊天关闭时不打开聊天。实际 Chromium 原生触摸／鼠标／wheel 输入及边界证据见 [抽屉手势修复计划](../plans/drawer-gesture-conflicts.md)。
+
+页面中部与互斥抽屉手势代码基线：[f91654c](https://github.com/li-sky/river-code/commit/f91654cc41b4d590e7b25e82097a93fd5e3e98b3)，验收见 [手势修复计划](../plans/drawer-gesture-conflicts.md)。
