@@ -22,7 +22,7 @@
 | SHARED-R04 | 良好的发牌和筹码音效 | 浏览器合成发牌、筹码、弃牌、获胜和 reaction 提示音 |
 | SHARED-R05 | 语音聊天、定向反应、自身头像表情和文字气泡 | WebRTC 实时媒体；房间 WebSocket 驱动消息、反应及头像更新 |
 | SHARED-R06 | 手机、平板和电脑均可操作 | 响应式弹窗、桌面聊天面板、手机浮层及指针控制的按住说话 |
-| SHARED-R07 | 尽可能复用公共组件 | Radix Dialog/Switch、Lucide 图标；原生样式与合成音效承担游戏表现 |
+| SHARED-R07 | 尽可能复用公共组件 | Radix Dialog/Switch、Lucide 图标、emoji-picker-react 完整表情选择器；原生样式与合成音效承担游戏表现 |
 
 ## 现有行为
 
@@ -98,7 +98,9 @@
 
 - 点击其他玩家头像打开定向 Emoji 选择器，向指定成员发送 reaction。动画使用实际牌桌尺寸，并保持目标头像的相对位置。
 
-- 点击自己的座位头像或可用的自身表情入口，选择挂在头像旁的 Emoji；支持清除。Emoji 从固定列表中选择，不能任意上传。
+- 点击自己的座位头像或可用的自身表情入口，选择挂在头像旁的 Emoji；支持清除。自身头像与定向反应共用按需加载的 `emoji-picker-react` 选择器，提供中文搜索、全部分类（含旗帜）、肤色和最近使用，数据随构建提供，发送原始 Unicode。覆盖所安装组件的数据集，字体/系统版本可能影响新表情及旗帜的显示；不能任意上传。
+
+- 系统或房间关闭互动、连接断开时，已打开的选择器显示对应状态，不呈现可选 Emoji，头像清除按钮禁用。恢复权限或连接后选择器可用。身份保存和房间命令均允许最多 16 个码点/64 字节，组合 Emoji 不被拆分。
 
 - 服务器决定互动许可、限流与保存结果；前端 React 文本展示不是 HTML 消息编辑器。
 
@@ -135,6 +137,7 @@
 | SHARED-AC08 | 聊天在另一端出现气泡；头像 Emoji 更新及定向反应可见；移出清理语音 | [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py) |
 | SHARED-AC09 | 麦克风拒绝、断线、退出/重入、刷新后重新加入有合理状态 | 媒体单元测试与 [scripts/browser_check.py](https://github.com/li-sky/river-code/blob/main/scripts/browser_check.py) |
 | SHARED-AC10 | 真实域名 HTTPS、不同网络 TURN 连接及声音体验达到要求 | 仍待部署环境和人工验证，不能由本机模拟麦克风验收代替 |
+| SHARED-AC11 | 中文搜索、分类、肤色、电脑/手机布局、两端定向反应、复杂头像刷新/清除与关闭/断线禁用 | [scripts/emoji_check.cjs](https://github.com/li-sky/river-code/blob/main/scripts/emoji_check.cjs)、`TestEmojiSequencesAndLimits`；本次实际证据见 [完整 Emoji 计划](../plans/all-emoji.md) |
 
 [docs/VERIFICATION.md](https://github.com/li-sky/river-code/blob/main/docs/VERIFICATION.md) 提供已执行检查的历史记录。各验收表描述源码覆盖及验证入口，运行结果以对应验证记录为准。
 
@@ -145,6 +148,7 @@
 | 路径 | 职责 |
 | --- | --- |
 | [frontend/src/App.tsx](https://github.com/li-sky/river-code/blob/main/frontend/src/App.tsx) | 共享组件、`Profile`、`SettingsFields`、媒体/聊天/Emoji 入口及状态桥接 |
+| [frontend/src/components/EmojiPicker.tsx](https://github.com/li-sky/river-code/blob/main/frontend/src/components/EmojiPicker.tsx) | 按需加载的中文完整表情选择器，保留所选混合肤色的原始 Unicode 序列 |
 | [frontend/src/lib/types.ts](https://github.com/li-sky/river-code/blob/main/frontend/src/lib/types.ts) | 系统配置、用户设置、房间设置和语音名单类型 |
 | [frontend/src/lib/api.ts](https://github.com/li-sky/river-code/blob/main/frontend/src/lib/api.ts) | 局部用户更新、multipart 上传及错误解析 |
 | [frontend/src/lib/sound.ts](https://github.com/li-sky/river-code/blob/main/frontend/src/lib/sound.ts) | 本地合成音效、音量、去重和资源清理 |
@@ -175,3 +179,5 @@
 ## 文档与代码入口
 
 [项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。公开／私人房间实现基线为提交 `92c1891`；后续实现变化需同步此规格和验收证据。
+
+完整 Emoji 选择器与组合头像保存的实现基线为代码提交 `0e8d22b6a6708aaf0777586a8bee305ce8b4f7da`；开发验收见 [完整 Emoji 计划](../plans/all-emoji.md)，未合入并行主分支、未发布。
