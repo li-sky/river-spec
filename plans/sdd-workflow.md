@@ -5,10 +5,15 @@
 ```json
 {
   "id": "sdd-workflow",
-  "status": "draft",
-  "specs": ["workflow"],
+  "status": "in_progress",
+  "specs": [
+    "workflow"
+  ],
   "risk": "tooling",
-  "checks": ["links", "sdd"]
+  "checks": [
+    "links",
+    "sdd"
+  ]
 }
 ```
 
