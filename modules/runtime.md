@@ -48,6 +48,14 @@ Docker 多阶段构建前端和 Go 可执行文件，运行容器使用非 root 
 
 - [docs/VERIFICATION.md](https://github.com/li-sky/river-code/blob/main/docs/VERIFICATION.md) 记录 2026 年 9 月 30 日已执行的验证及外部环境验证边界。
 
+## 2026-10-01 公网部署
+
+代码 `5b1751db96b1b5a53fe7b8b2867c2668971dd0e5` 已部署到 `us1.skyli.xyz`，公开地址为 https://river.skyli.xyz 。应用镜像 `river:5b1751d`、Compose 项目 `river` 和 PostgreSQL 持久卷 `river_postgres_data` 独立运行；本机端口分别为 `127.0.0.1:18080` 和 `127.0.0.1:15432`，通过现有 Nginx 与 Cloudflare 提供 HTTPS 和 WebSocket。
+
+运行文件位于 `/opt/river`：`current` 指向源码版本，`river-compose` 为运维入口，`OPERATIONS.md` 记录日志、备份和更新方式。配置文件权限为 `0600`，不进入仓库。独立 Let's Encrypt 证书于 2026-12-30 到期；已启用 Certbot 定时续期及 Nginx reload hook，并通过续期演练。已定向清理该域名旧缓存，公开首页返回 `Cache-Control: no-store` 和 `CF-Cache-Status: BYPASS`。
+
+后端 test/vet、前端构建、隔离 PostgreSQL 上的三人牌局与重启恢复、服务器及开发者本机通过公网域名的双人 WSS 完整结算均通过。既有 `skyli.xyz` 和 `us1.skyli.xyz` 首页仍返回 200。GitHub OAuth 已使用用户提供的凭据启用，授权跳转和 GitHub App 中的回调地址均为 `https://river.skyli.xyz/api/auth/github/callback`；完整用户授权登录未执行。TURN 未配置，跨网络语音未验收。发布证据见 [部署计划](../plans/deploy-us1.md)。
+
 ## 当前限制与下一阶段
 
 当前采用单 Go 实例和最新快照恢复，不提供跨服务器房间迁移、完整牌局回放或零停机规则更新。下一阶段可建立稳定试玩环境与独立开发环境，先完成统一开发命令，再按手牌边界安排后端版本更新；具体规格见反馈与迭代方案。

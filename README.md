@@ -1,5 +1,7 @@
 # RIVER 规格文档
 
+2026-10-01 已发布代码 `5b1751d` 到 [river.skyli.xyz](https://river.skyli.xyz)，服务器为 us1.skyli.xyz。HTTPS、独立 PostgreSQL、重启恢复及公网多人 WSS 已验证；GitHub OAuth 已配置，完整用户授权与跨网络 TURN 语音仍未验收。详情见 [部署计划](plans/deploy-us1.md)。
+
 本仓库维护 RIVER 自部署多人 No-Limit Texas Hold’em 现金桌的需求、模块规格、页面交互与验收场景。实现、测试、构建和部署文件位于 [river-code](https://github.com/li-sky/river-code)。
 
 ## 术语与范围
