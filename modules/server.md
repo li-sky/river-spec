@@ -44,6 +44,7 @@ HTTP 错误返回 `{error:string}`，JSON 响应为 `no-store`。创建房间的
 | `kick` | `playerId` | 仅房主且两手之间；不能踢自己。提交成功后关闭目标连接，关闭码 4003。当前移出不是永久封禁。 |
 | `chat` | `text` | 成员可发言，系统和房间同时允许；消息持久化并保留最近 100 条。 |
 | `pin_message` | `messageId` | 当前房主且系统/房间聊天均开启；按本桌最近消息 ID 置顶或替换唯一置顶，牌局中亦可操作。客户端不能提供置顶内容。 |
+| `recall_message` | `messageId` | 当前连接的原作者可在服务端发送时间起两分钟内撤回本桌消息；两层聊天均开启。清空正文并广播撤回提示，清除相同 ID 置顶；不能撤回他人或重复撤回。 |
 | `unpin_message` | `messageId` | 同上权限；只允许取消匹配当前 ID 的置顶，过期取消请求被拒绝。 |
 | `emoji` | `emoji` | 更新自己的头像 emoji，可用空字符串清除；系统和房间同时允许；调用身份服务保存个人值。 |
 | `reaction` | `to`、`emoji` | 向本桌成员发射表情，广播瞬时事件；系统和房间同时允许，不写入房间快照。 |
@@ -171,3 +172,9 @@ HTTP 错误返回 `{error:string}`，JSON 响应为 `no-store`。创建房间的
 本人暂离／返回的基线与验证见 [紧凑 UI 计划](../plans/compact-table-ui.md)。`backend/internal/server/sitout_test.go` 覆盖不能指定他人、旁观者拒绝、下一手排除／恢复、进行中手牌保持、快照及保存失败不广播。
 
 紧凑牌桌与本人暂离的当前代码基线：[23f4a52](https://github.com/li-sky/river-code/commit/23f4a521d52202e871c1a2e28a3729d7bd7e4938)。
+
+### 聊天撤回
+
+`Message` 增加可选 `recalled`（旧快照缺字段为 false）；撤回保留 ID、userId、name、at，text 清空。仅原作者的当前连接有权执行，与房主角色独立；两分钟窗口使用服务端原发送时间，未来时间、过期、跨桌/无效 ID、重复撤回均拒绝。每连接撤回共 12 次/10 秒，两层聊天开关都开启，牌局中可用。只从本桌最近 100 条或独立置顶副本查找；原记录被裁剪的置顶可撤回，并将提示重新加入有界历史。撤回同时清除相同 ID 置顶，不影响其他置顶；已撤回消息不能再置顶。沿用保存后广播与失败回滚，包括正文、置顶和版本。
+
+边界验证见 `backend/internal/server/recall_test.go`；实际证据见 [聊天气泡计划](../plans/chat-bubbles.md)。

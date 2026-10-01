@@ -123,3 +123,5 @@
 ## 文档与代码入口
 
 [项目文档](https://github.com/li-sky/river-spec) · [代码仓库](https://github.com/li-sky/river-code)。当前源码基线为提交 `4975694`；后续实现变化需同步此规格和验收证据。
+
+消息撤回继续通过房间 JSON 快照持久化，不调用独立消息表：`Messages` 中保留作者、时间和 ID，清空 text 并保存 `recalled:true`；撤回关联置顶时清空 `pinnedMessage`。旧快照没有 recalled 字段保持普通消息，无 SQL 迁移。保存失败时服务端回滚内容与版本，不广播。实际恢复及故障测试见 [聊天气泡计划](../plans/chat-bubbles.md)。
